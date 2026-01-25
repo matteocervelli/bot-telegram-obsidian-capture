@@ -5,11 +5,14 @@ A personal Telegram bot that captures messages (text, voice, photos, documents) 
 ## Features
 
 - **Voice transcription** via Eleven Labs Scribe API (high-quality multilingual)
+- **Video messages** with automatic transcription (regular videos + video circles)
 - **Photo & document capture** with automatic attachment organization
 - **Text messages** saved directly as notes
+- **Daily note mode** (`/daily`) - append captures to today's daily note
+- **Undo command** (`/undo`) - delete last capture (works with daily mode too)
 - **Kepano-style filenames** (`YYYY-MM-DD HHmm.md`) for clean chronological sorting
 - **User whitelist** - only responds to your Telegram account
-- **Obsidian-native frontmatter** with type, source, and tags
+- **Obsidian-native frontmatter** with tags and timestamps
 - **Docker support** for easy deployment anywhere
 
 ## Quick Start
@@ -70,6 +73,15 @@ Copy `.env.example` to `.env` and configure:
 | `ATTACHMENTS_FOLDER`   | Attachments path                  | `+/attachments` |
 | `NOTE_FILENAME_FORMAT` | strftime format for filenames     | `%Y-%m-%d %H%M` |
 | `TIMEZONE`             | Timezone for timestamps           | `Europe/Rome`   |
+| `DAILY_NOTES_FOLDER`   | Daily notes folder path           | `calendar/days` |
+| `DAILY_NOTE_FORMAT`    | strftime format for daily notes   | `%Y-%m-%d`      |
+
+## Commands
+
+| Command  | Description                                   |
+| -------- | --------------------------------------------- |
+| `/daily` | Toggle daily note mode (or `/daily on`/`off`) |
+| `/undo`  | Delete last capture (section in daily mode)   |
 
 ## Note Format
 
@@ -77,16 +89,32 @@ Notes are created with Obsidian-compatible frontmatter:
 
 ```markdown
 ---
-dateCreated: 2026-01-24T14:30:00+01:00
-source: telegram
-type: voice
-topics:
+dateCreated: 2026-01-25
 tags:
-  - inbox
-aliases:
+  - s/telegram
+  - k/journal
 ---
 
-Transcribed content here...
+Your captured content here...
+```
+
+Daily notes use a different format with timestamped sections:
+
+```markdown
+---
+dateCreated: 2026-01-25
+tags:
+  - k/daily
+---
+
+## 14:30
+
+First capture of the day
+
+## 15:45
+
+![[+/attachments/photo-2026-01-25-154532.jpg]]
+Photo caption here
 ```
 
 ## Deployment

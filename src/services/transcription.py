@@ -11,6 +11,28 @@ from src.config import settings
 SCRIBE_API_URL = "https://api.elevenlabs.io/v1/speech-to-text"
 
 
+async def transcribe_mp3(mp3_data: bytes) -> str:
+    """
+    Transcribe MP3 audio using Eleven Labs Scribe API.
+
+    Args:
+        mp3_data: Raw MP3 audio data
+
+    Returns:
+        Transcribed text
+    """
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            SCRIBE_API_URL,
+            headers={"xi-api-key": settings.elevenlabs_api_key},
+            files={"file": ("audio.mp3", mp3_data, "audio/mpeg")},
+            data={"model_id": "scribe_v1"},
+        )
+        response.raise_for_status()
+        result = response.json()
+        return result.get("text", "")
+
+
 async def transcribe_voice(ogg_data: bytes) -> str:
     """
     Transcribe voice message using Eleven Labs Scribe API.

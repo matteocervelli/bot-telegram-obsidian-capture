@@ -18,7 +18,23 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     text = message.text
     log.info("received_text", user_id=message.from_user.id, length=len(text))
 
-    note_path = create_note(content=text)
+    # Check for daily mode
+    is_daily = context.user_data.get("daily_mode", False)
+    section_time = None
+    if is_daily:
+        from src.services.daily_notes import append_to_daily
+
+        note_path, section_time = append_to_daily(content=text)
+    else:
+        note_path = create_note(content=text)
     log.info("note_created", path=str(note_path))
+
+    # Track for undo
+    context.user_data["last_capture"] = {
+        "note_path": note_path,
+        "attachments": [],
+        "is_daily": is_daily,
+        "section_time": section_time,
+    }
 
     await message.reply_text("✓ Captured")

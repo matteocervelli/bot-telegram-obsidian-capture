@@ -36,7 +36,23 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await message.reply_text("❌ No speech detected")
         return
 
-    note_path = create_note(content=transcription)
+    # Check for daily mode
+    is_daily = context.user_data.get("daily_mode", False)
+    section_time = None
+    if is_daily:
+        from src.services.daily_notes import append_to_daily
+
+        note_path, section_time = append_to_daily(content=transcription)
+    else:
+        note_path = create_note(content=transcription)
     log.info("note_created", path=str(note_path))
+
+    # Track for undo
+    context.user_data["last_capture"] = {
+        "note_path": note_path,
+        "attachments": [],
+        "is_daily": is_daily,
+        "section_time": section_time,
+    }
 
     await message.reply_text(f"✓ Captured ({voice.duration}s)")

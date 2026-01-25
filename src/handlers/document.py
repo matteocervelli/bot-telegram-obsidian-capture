@@ -30,7 +30,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     extension = filename.rsplit(".", 1)[-1] if "." in filename else "bin"
 
     # Save attachment
-    _, wikilink_path = save_attachment(bytes(doc_data), extension, prefix="doc")
+    file_path, wikilink_path = save_attachment(bytes(doc_data), extension, prefix="doc")
 
     note_content = (
         f"{caption}\n\nOriginal filename: `{filename}`"
@@ -38,7 +38,25 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         else f"Original filename: `{filename}`"
     )
 
-    note_path = create_note(content=note_content, attachment_path=wikilink_path)
+    # Check for daily mode
+    is_daily = context.user_data.get("daily_mode", False)
+    section_time = None
+    if is_daily:
+        from src.services.daily_notes import append_to_daily
+
+        note_path, section_time = append_to_daily(
+            content=note_content, attachment_path=wikilink_path
+        )
+    else:
+        note_path = create_note(content=note_content, attachment_path=wikilink_path)
     log.info("note_created", path=str(note_path))
+
+    # Track for undo
+    context.user_data["last_capture"] = {
+        "note_path": note_path,
+        "attachments": [file_path],
+        "is_daily": is_daily,
+        "section_time": section_time,
+    }
 
     await message.reply_text("✓ Captured")

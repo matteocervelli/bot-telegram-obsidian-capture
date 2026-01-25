@@ -2,10 +2,12 @@
 
 import structlog
 from telegram import Update
-from telegram.ext import Application, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
 
 from src.config import settings
 from src.handlers import handle_document, handle_photo, handle_text, handle_voice
+from src.handlers.commands import handle_daily, handle_undo
+from src.handlers.video import handle_video, handle_video_note
 
 structlog.configure(
     processors=[
@@ -29,9 +31,17 @@ def main() -> None:
 
     # Register handlers with user whitelist filter
     allowed = user_filter()
+
+    # Command handlers
+    app.add_handler(CommandHandler("undo", handle_undo, filters=allowed))
+    app.add_handler(CommandHandler("daily", handle_daily, filters=allowed))
+
+    # Message handlers
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & allowed, handle_text))
     app.add_handler(MessageHandler(filters.VOICE & allowed, handle_voice))
     app.add_handler(MessageHandler(filters.PHOTO & allowed, handle_photo))
+    app.add_handler(MessageHandler(filters.VIDEO & allowed, handle_video))
+    app.add_handler(MessageHandler(filters.VIDEO_NOTE & allowed, handle_video_note))
     app.add_handler(MessageHandler(filters.Document.ALL & allowed, handle_document))
 
     log.info("bot_ready")

@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     note_filename_format: str = "%Y-%m-%d %H%M"
     timezone: str = "Europe/Rome"
 
+    # Daily notes
+    daily_notes_folder: str = "calendar/days"
+    daily_note_format: str = "%Y-%m-%d"
+
     @property
     def inbox_path(self) -> Path:
         return self.vault_path / self.inbox_folder
@@ -34,6 +38,10 @@ class Settings(BaseSettings):
     @property
     def attachments_path(self) -> Path:
         return self.vault_path / self.attachments_folder
+
+    @property
+    def daily_notes_path(self) -> Path:
+        return self.vault_path / self.daily_notes_folder
 
 
 settings = Settings()

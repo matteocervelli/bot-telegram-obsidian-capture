@@ -10,92 +10,104 @@ This bot is a **capture tool** - fast, simple, reliable. Features should enhance
 
 ---
 
-## Phase 1: Quick Wins
+## Phase 1: Quick Wins ✅ COMPLETED
 
 Low effort, high impact improvements.
 
-### 1.1 Daily Note Append (`/daily`)
+### 1.1 Daily Note Append (`/daily`) ✅
 
-**Goal:** Append content to today's daily note instead of creating a new file.
+**Status:** Implemented in v0.1.1
 
-**Behavior:**
+**Features:**
 
 - `/daily` toggles mode (or `/daily on` / `/daily off`)
-- When enabled, messages append to `YYYY-MM-DD.md` in configured daily notes folder
-- Each capture adds timestamped section: `## 14:30` followed by content
-- If daily note doesn't exist, create it with standard frontmatter
+- Messages append to `YYYY-MM-DD.md` in configured daily notes folder
+- Each capture adds timestamped section: `## HH:MM` followed by content
+- Creates daily note with frontmatter if it doesn't exist
+- `/undo` in daily mode removes only the last section, not the whole file
 
 **Configuration:**
 
 ```env
-DAILY_NOTES_FOLDER=Daily Notes
+DAILY_NOTES_FOLDER=calendar/days
 DAILY_NOTE_FORMAT=%Y-%m-%d
 ```
 
-**Effort:** ~2-3 hours
-
 ---
 
-### 1.2 Undo Last Capture (`/undo`)
+### 1.2 Undo Last Capture (`/undo`) ✅
 
-**Goal:** Delete the last created note (for mistakes/duplicates).
+**Status:** Implemented in v0.1.1
 
-**Behavior:**
+**Features:**
 
 - Bot tracks last created file path in memory
-- `/undo` deletes that file and clears the reference
-- Confirmation message: "Deleted: 2026-01-25 1430.md"
-- Only works once per capture (can't undo twice)
-
-**Safety:**
-
-- Only deletes files in inbox folder (never outside)
-- Attachments deleted if note contained them
-
-**Effort:** ~1-2 hours
+- `/undo` deletes note and associated attachments
+- In daily mode: removes only the last `## HH:MM` section
+- Confirmation message shows deleted items
+- Single-use per capture (can't undo twice)
 
 ---
 
-### 1.3 Video Message Support
+### 1.3 Video Message Support ✅
 
-**Goal:** Capture video messages with both video file and transcription.
+**Status:** Implemented in v0.1.1
+
+**Features:**
+
+- Regular videos and video circles (video notes) supported
+- Videos saved to attachments folder with `vid-` or `vnote-` prefix
+- Audio extracted and transcribed via Eleven Labs
+- Note created with video embed + transcription
+- Transcription failure is non-fatal (note still created with embed)
+
+---
+
+## Phase 2: Setup & Configuration
+
+### 2.0 Interactive Setup Wizard
+
+**Goal:** Guide users through initial configuration with an interactive CLI.
 
 **Behavior:**
 
-1. Download video from Telegram
-2. Save to attachments folder (like photos)
-3. Extract audio track
-4. Transcribe audio (reuse voice transcription pipeline)
-5. Create note with video embed and transcription
+```bash
+# First run or explicit setup
+uv run python -m src.setup
 
-**Note format:**
-
-```markdown
----
-type: video
----
-
-![[+/attachments/tg-video-20260125-1430.mp4]]
-
-[Transcription]
-Your transcribed content here...
+# Or via make
+make setup
 ```
 
-**Technical:**
+**Steps:**
 
-- FFmpeg already available (used for voice)
-- Extract audio: `ffmpeg -i video.mp4 -vn -acodec mp3 audio.mp3`
-- Telegram video notes (circles) and regular videos both supported
+1. Check for existing `.env` file
+2. Prompt for Telegram bot token (with link to BotFather)
+3. Prompt for Telegram user ID (with instructions to get it)
+4. Prompt for Eleven Labs API key (with link to dashboard)
+5. Prompt for vault path (with file picker or manual entry)
+6. Configure optional settings (inbox folder, timezone, daily notes folder)
+7. Validate all inputs
+8. Write `.env` file
+9. Test Telegram connection
+10. Test vault write access
 
-**Effort:** ~3-4 hours
+**Features:**
+
+- Colored terminal output
+- Input validation with helpful error messages
+- Skip already-configured values
+- `--reconfigure` flag to reset specific values
+
+**Effort:** ~4-5 hours
 
 ---
 
-## Phase 2: Transcription Backends
+## Phase 3: Transcription Backends
 
 Multiple transcription options for flexibility and cost control.
 
-### 2.1 Transcription Provider Abstraction
+### 3.1 Transcription Provider Abstraction
 
 **Goal:** Support multiple transcription services with unified interface.
 
@@ -129,7 +141,7 @@ TRANSCRIPTION_PROVIDER=elevenlabs  # elevenlabs | openai | local
 
 ---
 
-### 2.2 OpenAI Whisper API
+### 3.2 OpenAI Whisper API
 
 **Goal:** Add OpenAI as transcription option.
 
@@ -150,7 +162,7 @@ OPENAI_API_KEY=sk-...
 
 ---
 
-### 2.3 Local Whisper (faster-whisper)
+### 3.3 Local Whisper (faster-whisper)
 
 **Goal:** Fully offline transcription with no API costs.
 
@@ -182,9 +194,9 @@ WHISPER_MODEL=base  # tiny | base | small | medium | large
 
 ---
 
-## Phase 3: Capture Enhancements
+## Phase 4: Capture Enhancements
 
-### 3.1 Message Batching
+### 4.1 Message Batching
 
 **Goal:** Collect multiple messages, then save as single note.
 
@@ -221,7 +233,7 @@ type: batch
 
 ---
 
-### 3.2 Auto-Tagging via LLM
+### 4.2 Auto-Tagging via LLM
 
 **Goal:** Automatically extract topics/tags from captured content.
 
@@ -257,9 +269,9 @@ Content: {note_content}
 
 ---
 
-## Phase 4: Operations & Monitoring
+## Phase 5: Operations & Monitoring
 
-### 4.1 Health Endpoint
+### 5.1 Health Endpoint
 
 **Goal:** HTTP endpoint for monitoring bot health.
 
@@ -291,7 +303,7 @@ HEALTH_PORT=8080
 
 ---
 
-### 4.2 Prometheus Metrics
+### 5.2 Prometheus Metrics
 
 **Goal:** Export metrics for Grafana dashboards.
 
@@ -317,9 +329,9 @@ batch_messages_pending
 
 ---
 
-## Phase 5: Distribution
+## Phase 6: Distribution
 
-### 5.1 Docker Hub / GitHub Container Registry
+### 6.1 Docker Hub / GitHub Container Registry
 
 **Goal:** Pre-built images for easy deployment.
 
@@ -341,7 +353,7 @@ services:
 
 ---
 
-### 5.2 Homebrew Service (macOS)
+### 6.2 Homebrew Service (macOS)
 
 **Goal:** Native macOS installation and service management.
 
@@ -363,7 +375,7 @@ brew services start telegram-obsidian-capture
 
 ---
 
-### 5.3 Obsidian Plugin
+### 6.3 Obsidian Plugin
 
 **Goal:** Install and configure bot directly from Obsidian.
 
@@ -406,30 +418,32 @@ Intentionally excluded to keep the bot simple:
 
 Suggested implementation sequence:
 
-1. `/undo` command (quick win, safety feature)
-2. `/daily` command (common workflow)
-3. Video message support (completes media types)
-4. Transcription abstraction + OpenAI
-5. Health endpoint
-6. Message batching
-7. Local Whisper
-8. Prometheus metrics
-9. Docker Hub publishing
-10. Auto-tagging
-11. Homebrew service
-12. Obsidian plugin (if demand exists)
+1. ~~`/undo` command~~ ✅ (v0.1.1)
+2. ~~`/daily` command~~ ✅ (v0.1.1)
+3. ~~Video message support~~ ✅ (v0.1.1)
+4. Interactive setup wizard
+5. Transcription abstraction + OpenAI
+6. Health endpoint
+7. Message batching
+8. Local Whisper
+9. Prometheus metrics
+10. Docker Hub publishing
+11. Auto-tagging
+12. Homebrew service
+13. Obsidian plugin (if demand exists)
 
 ---
 
 ## Version Milestones
 
-| Version | Features                             |
-| ------- | ------------------------------------ |
-| 0.2.0   | `/undo`, `/daily` commands           |
-| 0.3.0   | Video messages                       |
-| 0.4.0   | Multi-backend transcription (OpenAI) |
-| 0.5.0   | Health endpoint, Prometheus          |
-| 0.6.0   | Message batching                     |
-| 0.7.0   | Local Whisper                        |
-| 0.8.0   | Auto-tagging                         |
-| 1.0.0   | Stable release, Docker Hub, Homebrew |
+| Version | Features                                       | Status  |
+| ------- | ---------------------------------------------- | ------- |
+| 0.1.0   | Initial release (text, voice, photo, document) | ✅      |
+| 0.1.1   | `/undo`, `/daily`, video messages              | ✅      |
+| 0.2.0   | Interactive setup wizard                       | Planned |
+| 0.3.0   | Multi-backend transcription (OpenAI)           | Planned |
+| 0.4.0   | Health endpoint, Prometheus                    | Planned |
+| 0.5.0   | Message batching                               | Planned |
+| 0.6.0   | Local Whisper                                  | Planned |
+| 0.7.0   | Auto-tagging                                   | Planned |
+| 1.0.0   | Stable release, Docker Hub, Homebrew           | Planned |

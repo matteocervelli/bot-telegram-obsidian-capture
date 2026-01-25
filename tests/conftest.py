@@ -11,6 +11,8 @@ os.environ.setdefault("VAULT_PATH", "/tmp/test-vault")
 os.environ.setdefault("INBOX_FOLDER", "+")
 os.environ.setdefault("ATTACHMENTS_FOLDER", "+/attachments")
 os.environ.setdefault("TIMEZONE", "UTC")
+os.environ.setdefault("DAILY_NOTES_FOLDER", "Dailies")
+os.environ.setdefault("DAILY_NOTE_FORMAT", "%Y-%m-%d")
 
 import pytest
 
