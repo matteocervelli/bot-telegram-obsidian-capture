@@ -38,11 +38,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         else f"Original filename: `{filename}`"
     )
 
-    note_path = create_note(
-        content=note_content,
-        note_type="document",
-        attachment_path=wikilink_path,
-    )
+    note_path = create_note(content=note_content, attachment_path=wikilink_path)
     log.info("note_created", path=str(note_path))
 
     await message.reply_text("✓ Captured")

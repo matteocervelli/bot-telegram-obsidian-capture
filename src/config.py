@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # Telegram
     telegram_token: str
     telegram_user_id: int  # Whitelist: only accept from this user
+    bot_name: str | None = None  # For reference only
 
     # Eleven Labs Scribe
     elevenlabs_api_key: str

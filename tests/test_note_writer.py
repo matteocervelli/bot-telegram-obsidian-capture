@@ -18,13 +18,13 @@ def test_create_text_note(temp_vault):
         mock_settings.note_filename_format = "%Y-%m-%d %H%M"
         mock_dt.now.return_value = datetime(2026, 1, 24, 14, 30, 0)
 
-        path = create_note(content="Test content", note_type="text")
+        path = create_note(content="Test content")
 
         assert path.exists()
         content = path.read_text()
         assert "dateCreated:" in content
-        assert "source: telegram" in content
-        assert "type: text" in content
+        assert "s/telegram" in content
+        assert "k/journal" in content
         assert "Test content" in content
 
 
@@ -42,11 +42,7 @@ def test_create_note_with_attachment(temp_vault):
         mock_settings.note_filename_format = "%Y-%m-%d %H%M"
         mock_dt.now.return_value = datetime(2026, 1, 24, 14, 30, 0)
 
-        path = create_note(
-            content="Caption",
-            note_type="photo",
-            attachment_path="+/attachments/test.jpg",
-        )
+        path = create_note(content="Caption", attachment_path="+/attachments/test.jpg")
 
         content = path.read_text()
         assert "![[+/attachments/test.jpg]]" in content

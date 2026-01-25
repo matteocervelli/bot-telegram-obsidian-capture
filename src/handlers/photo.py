@@ -29,11 +29,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # Save attachment
     _, wikilink_path = save_attachment(bytes(photo_data), "jpg")
 
-    note_path = create_note(
-        content=caption,
-        note_type="photo",
-        attachment_path=wikilink_path,
-    )
+    note_path = create_note(content=caption, attachment_path=wikilink_path)
     log.info("note_created", path=str(note_path))
 
     await message.reply_text("✓ Captured")

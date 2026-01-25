@@ -36,7 +36,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await message.reply_text("❌ No speech detected")
         return
 
-    note_path = create_note(content=transcription, note_type="voice")
+    note_path = create_note(content=transcription)
     log.info("note_created", path=str(note_path))
 
     await message.reply_text(f"✓ Captured ({voice.duration}s)")

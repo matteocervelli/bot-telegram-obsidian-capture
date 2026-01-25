@@ -18,7 +18,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     text = message.text
     log.info("received_text", user_id=message.from_user.id, length=len(text))
 
-    note_path = create_note(content=text, note_type="text")
+    note_path = create_note(content=text)
     log.info("note_created", path=str(note_path))
 
     await message.reply_text("✓ Captured")

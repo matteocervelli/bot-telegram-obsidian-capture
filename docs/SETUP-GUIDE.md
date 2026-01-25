@@ -154,6 +154,8 @@ All 3 tests should pass.
 uv run python -m src.bot
 ```
 
+The bot runs in the foreground. **Stop it with `Ctrl+C`**.
+
 You should see:
 
 ```

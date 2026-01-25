@@ -9,7 +9,6 @@ from src.config import settings
 
 def create_note(
     content: str,
-    note_type: str = "text",
     attachment_path: str | None = None,
 ) -> Path:
     """
@@ -17,7 +16,6 @@ def create_note(
 
     Args:
         content: The note body text
-        note_type: One of text, voice, photo, document
         attachment_path: Optional wikilink path to attachment
 
     Returns:
@@ -28,13 +26,10 @@ def create_note(
 
     # Build frontmatter
     frontmatter = f"""---
-dateCreated: {now.isoformat(timespec="seconds")}
-source: telegram
-type: {note_type}
-topics:
+dateCreated: {now.strftime("%Y-%m-%d")}
 tags:
-  - inbox
-aliases:
+  - s/telegram
+  - k/journal
 ---"""
 
     # Build body
@@ -44,7 +39,7 @@ aliases:
     if attachment_path:
         body = f"{content}\n\n![[{attachment_path}]]" if content else f"![[{attachment_path}]]"
 
-    note_content = f"{frontmatter}\n\n{body}\n"
+    note_content = f"{frontmatter}\n{body}\n"
 
     # Generate filename
     filename = now.strftime(settings.note_filename_format) + ".md"
