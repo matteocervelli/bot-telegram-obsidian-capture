@@ -1,5 +1,9 @@
 FROM python:3.11-slim
 
+LABEL org.opencontainers.image.source="https://github.com/matteocervelli/bot-telegram-obsidian-capture"
+LABEL org.opencontainers.image.description="Telegram bot for quick capture to Obsidian vault"
+LABEL org.opencontainers.image.licenses="LicenseRef-Polyform-Noncommercial-1.0.0"
+
 # Install ffmpeg (required for audio conversion)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \

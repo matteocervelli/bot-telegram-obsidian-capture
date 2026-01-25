@@ -19,6 +19,30 @@ A personal Telegram bot that captures messages (text, voice, photos, documents) 
 
 ### Docker (Recommended)
 
+**Using pre-built image:**
+
+```bash
+# Pull the image
+docker pull ghcr.io/matteocervelli/telegram-obsidian-capture:latest
+
+# Create .env file with your configuration
+cat > .env << EOF
+TELEGRAM_TOKEN=your-bot-token
+TELEGRAM_USER_ID=your-user-id
+ELEVENLABS_API_KEY=your-api-key
+VAULT_PATH=/vault
+EOF
+
+# Run with volume mount to your vault
+docker run -d \
+  --name telegram-obsidian-bot \
+  --env-file .env \
+  -v /path/to/your/vault:/vault \
+  ghcr.io/matteocervelli/telegram-obsidian-capture:latest
+```
+
+**Building from source:**
+
 ```bash
 # Clone and configure
 git clone https://github.com/matteocervelli/bot-telegram-obsidian-capture.git
