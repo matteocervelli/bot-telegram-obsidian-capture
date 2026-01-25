@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram Obsidian Capture Bot
+After=network.target
+
+[Service]
+Type=simple
+User=matteo
+WorkingDirectory=/home/matteo/telegram-obsidian-capture
+EnvironmentFile=/home/matteo/telegram-obsidian-capture/.env
+ExecStart=/home/matteo/telegram-obsidian-capture/.venv/bin/python -m src.bot
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

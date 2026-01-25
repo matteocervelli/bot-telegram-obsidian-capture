@@ -1,0 +1,1 @@
+"""Telegram-Obsidian Capture Bot."""
