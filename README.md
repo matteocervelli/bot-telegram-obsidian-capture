@@ -10,12 +10,31 @@ A personal Telegram bot that captures messages (text, voice, photos, documents) 
 - **Kepano-style filenames** (`YYYY-MM-DD HHmm.md`) for clean chronological sorting
 - **User whitelist** - only responds to your Telegram account
 - **Obsidian-native frontmatter** with type, source, and tags
+- **Docker support** for easy deployment anywhere
 
 ## Quick Start
 
+### Docker (Recommended)
+
+```bash
+# Clone and configure
+git clone https://github.com/matteocervelli/bot-telegram-obsidian-capture.git
+cd bot-telegram-obsidian-capture
+cp .env.example .env
+# Edit .env with your tokens and paths
+
+# Run
+docker compose up -d --build
+
+# Check logs
+docker compose logs -f
+```
+
+### Local Development
+
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/bot-telegram-obsidian-capture.git
+git clone https://github.com/matteocervelli/bot-telegram-obsidian-capture.git
 cd bot-telegram-obsidian-capture
 
 # Install dependencies
@@ -76,10 +95,18 @@ See [docs/SETUP-GUIDE.md](docs/SETUP-GUIDE.md) for full deployment instructions 
 
 - Telegram bot registration
 - Eleven Labs API setup
-- systemd service configuration (Ubuntu)
+- Docker deployment (recommended)
+- Native systemd service (Ubuntu)
 - Troubleshooting
 
-Quick systemd deployment:
+### Docker Deployment
+
+```bash
+docker compose up -d --build
+docker compose logs -f  # View logs
+```
+
+### Native systemd (Ubuntu)
 
 ```bash
 ./scripts/install.sh

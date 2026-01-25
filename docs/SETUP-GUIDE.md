@@ -190,9 +190,64 @@ If using Obsidian Sync:
 
 ---
 
-## Phase 6: Production Deployment (Ubuntu)
+## Phase 6: Docker Deployment (Recommended)
 
-### Step 6.1: Prepare Server
+Docker is the simplest way to deploy the bot on any machine with Docker installed.
+
+### Step 6.1: Configure Environment
+
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+Your existing `VAULT_PATH` is used for both local and Docker deployment - no additional configuration needed.
+
+### Step 6.2: Build and Start
+
+```bash
+docker compose up -d --build
+```
+
+### Step 6.3: Verify Running
+
+```bash
+# Check container status
+docker compose ps
+
+# View logs (should show "bot_ready")
+docker compose logs -f
+```
+
+### Step 6.4: Test
+
+1. Send a text message to your bot in Telegram
+2. Check that a note appears in your vault's `+/` folder
+3. Stop following logs with `Ctrl+C`
+
+### Step 6.5: Management Commands
+
+```bash
+# Stop bot
+docker compose down
+
+# Restart bot
+docker compose restart
+
+# Rebuild after code changes
+docker compose up -d --build
+
+# View recent logs
+docker compose logs --tail=50
+```
+
+---
+
+## Phase 6 Alternative: Native Ubuntu Deployment
+
+If you prefer running without Docker on Ubuntu.
+
+### Step 6-Alt.1: Prepare Server
 
 SSH into your Ubuntu server (Beelink mini PC):
 
@@ -200,21 +255,21 @@ SSH into your Ubuntu server (Beelink mini PC):
 ssh user@your-server-ip
 ```
 
-### Step 6.2: Install System Dependencies
+### Step 6-Alt.2: Install System Dependencies
 
 ```bash
 sudo apt update
 sudo apt install -y python3.11 python3.11-venv ffmpeg git
 ```
 
-### Step 6.3: Install uv
+### Step 6-Alt.3: Install uv
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source ~/.bashrc  # or restart shell
 ```
 
-### Step 6.4: Clone Repository
+### Step 6-Alt.4: Clone Repository
 
 ```bash
 cd ~
@@ -231,7 +286,7 @@ rsync -avz --exclude='.venv' --exclude='__pycache__' \
   user@server:~/telegram-obsidian-capture/
 ```
 
-### Step 6.5: Create .env on Server
+### Step 6-Alt.5: Create .env on Server
 
 ```bash
 cp .env.example .env
@@ -240,13 +295,13 @@ nano .env  # Edit with your credentials
 
 Update `VAULT_PATH` to match your server's vault location.
 
-### Step 6.6: Install Dependencies
+### Step 6-Alt.6: Install Dependencies
 
 ```bash
 uv sync
 ```
 
-### Step 6.7: Test Bot on Server
+### Step 6-Alt.7: Test Bot on Server
 
 ```bash
 uv run python -m src.bot
@@ -254,7 +309,7 @@ uv run python -m src.bot
 
 Send a test message. Ctrl+C when confirmed working.
 
-### Step 6.8: Install systemd Service
+### Step 6-Alt.8: Install systemd Service
 
 ```bash
 # Edit service file with correct paths
@@ -273,7 +328,7 @@ sudo systemctl enable telegram-capture
 sudo systemctl start telegram-capture
 ```
 
-### Step 6.9: Verify Service Running
+### Step 6-Alt.9: Verify Service Running
 
 ```bash
 sudo systemctl status telegram-capture
@@ -339,7 +394,13 @@ uv run pytest tests/ -v          # Run tests
 uv run ruff check src/           # Lint
 uv run ruff format src/          # Format
 
-# Production (Ubuntu)
+# Docker deployment
+docker compose up -d --build     # Build and start
+docker compose logs -f           # View logs
+docker compose down              # Stop
+docker compose restart           # Restart
+
+# Native Ubuntu deployment
 sudo systemctl start telegram-capture
 sudo systemctl stop telegram-capture
 sudo systemctl restart telegram-capture
@@ -380,7 +441,7 @@ Your captured content here...
 - [ ] Bot registered with @BotFather
 - [ ] Telegram user ID obtained
 - [ ] Eleven Labs API key obtained
-- [ ] FFmpeg installed
+- [ ] FFmpeg installed (local dev only)
 - [ ] `.env` configured
 - [ ] Local tests pass
 - [ ] Local bot test successful
@@ -389,6 +450,14 @@ Your captured content here...
 - [ ] Photo capture works
 - [ ] Document capture works
 - [ ] Obsidian Sync confirmed
-- [ ] Production server prepared
+
+**Docker deployment:**
+
+- [ ] Docker and Docker Compose installed
+- [ ] Container running (`docker compose ps`)
+
+**Native Ubuntu deployment:**
+
+- [ ] Server prepared with dependencies
 - [ ] systemd service installed
 - [ ] Service auto-starts on reboot

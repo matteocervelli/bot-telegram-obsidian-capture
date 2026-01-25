@@ -68,3 +68,7 @@ logs/
 tmp/
 temp/
 *.tmp
+
+# CLAUDE
+CLAUDE.MD
+.claude/
