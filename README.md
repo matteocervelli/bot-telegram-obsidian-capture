@@ -128,6 +128,10 @@ uv run ruff check src/ tests/
 uv run ruff format src/ tests/
 ```
 
+## Support
+
+If you find this useful, [buy me a coffee](https://adli.men/coffee).
+
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+[Polyform Noncommercial 1.0.0](LICENSE) - free for personal use, not for commercial purposes.

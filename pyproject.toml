@@ -2,6 +2,9 @@
 name = "telegram-obsidian-capture"
 version = "0.1.0"
 description = "Telegram bot for quick capture to Obsidian vault"
+readme = "README.md"
+license = "LicenseRef-Polyform-Noncommercial-1.0.0"
+authors = [{ name = "Matteo Cervelli", email = "matteo@adli.men" }]
 requires-python = ">=3.11"
 dependencies = [
     "python-telegram-bot[job-queue]>=21.0",
