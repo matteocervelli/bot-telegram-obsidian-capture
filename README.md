@@ -1,5 +1,10 @@
 # Telegram → Obsidian Capture Bot
 
+[![GitHub release](https://img.shields.io/github/v/release/matteocervelli/bot-telegram-obsidian-capture)](https://github.com/matteocervelli/bot-telegram-obsidian-capture/releases)
+[![Docker Image](https://img.shields.io/badge/docker-ghcr.io-blue?logo=docker)](https://github.com/matteocervelli/bot-telegram-obsidian-capture/pkgs/container/telegram-obsidian-capture)
+[![License](https://img.shields.io/badge/license-Polyform%20NC-green)](LICENSE)
+[![Buy Me a Coffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-orange?logo=buy-me-a-coffee)](https://adli.men/coffee)
+
 A personal Telegram bot that captures messages (text, voice, photos, documents) and saves them as timestamped markdown notes in your Obsidian vault.
 
 ## Features
@@ -182,7 +187,9 @@ uv run ruff format src/ tests/
 
 ## Support
 
-If you find this useful, [buy me a coffee](https://adli.men/coffee).
+If you find this useful, consider supporting the project:
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-orange?style=for-the-badge&logo=buy-me-a-coffee)](https://adli.men/coffee)
 
 ## License
 
