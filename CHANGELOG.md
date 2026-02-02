@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-02
+
+### Added
+
+- **Task management system** with Obsidian Tasks plugin compatibility
+  - `/task` command to add tasks with `#to/do` tag
+  - `/task --follow-up` flag for `#to/follow-up` tag
+  - `/task --today`, `--tomorrow`, `--yesterday` for relative due dates
+  - `/task --2026-02-10` for explicit due dates
+  - `/task_list` command to list open tasks from entire vault
+  - `/task_list --today` to filter tasks due today or earlier
+  - `/done N` command to mark task #N as complete with timestamp
+- `task: Buy milk` text prefix to add tasks without command
+- Task type prefix in list output (`DO:` / `FOLLOW-UP:`)
+- Completion date (`✅ YYYY-MM-DD`) automatically added when task is done
+- Support for Telegram em-dash (`—`) conversion (common on mobile keyboards)
+- New configuration options: `TASK_INBOX_FILE`, `TASK_TAG`, `TASK_TAG_FOLLOWUP`, `TASK_LIST_LIMIT`
+
+### Changed
+
+- Task search scans entire vault, sorted by file modification time (newest first)
+- Hidden directories (`.obsidian/`, `.git/`) excluded from task search
+
 ## [0.1.1] - 2026-01-25
 
 ### Added
@@ -45,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable vault path, inbox folder, and attachments folder
 - Timezone support for timestamps
 
-[Unreleased]: https://github.com/matteocervelli/bot-telegram-obsidian-capture/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/matteocervelli/bot-telegram-obsidian-capture/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/matteocervelli/bot-telegram-obsidian-capture/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/matteocervelli/bot-telegram-obsidian-capture/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/matteocervelli/bot-telegram-obsidian-capture/releases/tag/v0.1.0

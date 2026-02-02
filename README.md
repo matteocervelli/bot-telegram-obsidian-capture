@@ -14,6 +14,7 @@ A personal Telegram bot that captures messages (text, voice, photos, documents) 
 - **Photo & document capture** with automatic attachment organization
 - **Text messages** saved directly as notes
 - **Daily note mode** (`/daily`) - append captures to today's daily note
+- **Task management** (`/task`, `/task_list`, `/done`) - add, list, and complete tasks
 - **Undo command** (`/undo`) - delete last capture (works with daily mode too)
 - **Kepano-style filenames** (`YYYY-MM-DD HHmm.md`) for clean chronological sorting
 - **User whitelist** - only responds to your Telegram account
@@ -107,10 +108,28 @@ Copy `.env.example` to `.env` and configure:
 
 ## Commands
 
-| Command  | Description                                   |
-| -------- | --------------------------------------------- |
-| `/daily` | Toggle daily note mode (or `/daily on`/`off`) |
-| `/undo`  | Delete last capture (section in daily mode)   |
+| Command                       | Description                                        |
+| ----------------------------- | -------------------------------------------------- |
+| `/daily`                      | Toggle daily note mode (or `/daily on`/`off`)      |
+| `/undo`                       | Delete last capture (section in daily mode)        |
+| `/task Buy milk`              | Add task to inbox with `#to/do` tag                |
+| `/task Call John --follow-up` | Add task with `#to/follow-up` tag                  |
+| `/task Meeting --today`       | Add task with due date (supports `--tomorrow` too) |
+| `/task_list`                  | List open tasks from vault (shows DO/FOLLOW-UP)    |
+| `/task_list --today`          | List tasks due today or earlier                    |
+| `/done 3`                     | Complete task #3 from last `/task_list`            |
+
+### Task Management
+
+Tasks are created in Obsidian Tasks format compatible with the Tasks plugin:
+
+```markdown
+- [ ] #to/do Buy milk 📅 2026-02-10
+- [ ] #to/follow-up Call John 📅 2026-02-15
+- [x] #to/do Completed task 📅 2026-02-01 ✅ 2026-02-02
+```
+
+**Note:** Telegram may convert `--` to em-dash (`—`). Both work!
 
 ## Note Format
 

@@ -1,6 +1,6 @@
 [project]
 name = "telegram-obsidian-capture"
-version = "0.1.1"
+version = "0.2.0"
 description = "Telegram bot for quick capture to Obsidian vault"
 readme = "README.md"
 license = "LicenseRef-Polyform-Noncommercial-1.0.0"

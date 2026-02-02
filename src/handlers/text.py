@@ -18,6 +18,15 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     text = message.text
     log.info("received_text", user_id=message.from_user.id, length=len(text))
 
+    # Check for task syntax: "task: ..." or "Task: ..."
+    if text.lower().startswith("task:"):
+        from src.services.task_manager import add_task
+
+        task_path = add_task(text)
+        log.info("task_added", path=str(task_path))
+        await message.reply_text("✓ Task added")
+        return
+
     # Check for daily mode
     is_daily = context.user_data.get("daily_mode", False)
     section_time = None

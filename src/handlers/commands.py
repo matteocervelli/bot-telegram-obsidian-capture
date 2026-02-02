@@ -102,3 +102,128 @@ async def handle_daily(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     status = "ON" if mode else "OFF"
     log.info("daily_mode_changed", mode=mode)
     await message.reply_text(f"Daily mode: {status}")
+
+
+async def handle_task(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /task command - add a new task to inbox.
+
+    Flags:
+        --follow-up: Use #to/follow-up tag instead of #to/do
+        --YYYY-MM-DD or --today/--tomorrow: Set due date
+        Note: Telegram may convert -- to em-dash (—), both work
+    """
+    message = update.message
+    if not message:
+        return
+
+    args = context.args or []
+    if not args:
+        await message.reply_text("Usage: /task Buy milk [--follow-up] [--today]")
+        return
+
+    from src.services.task_manager import add_task, parse_date_arg
+
+    # Parse flags (handle both -- and em/en-dash variants)
+    follow_up = False
+    due_date = None
+    task_words = []
+
+    for arg in args:
+        # Check for --follow-up (with dash variants)
+        if arg.lstrip("-–—") == "follow-up":
+            follow_up = True
+        # Check for date argument
+        elif parsed_date := parse_date_arg(arg):
+            due_date = parsed_date
+        else:
+            task_words.append(arg)
+
+    if not task_words:
+        await message.reply_text("Usage: /task Buy milk [--follow-up] [--today]")
+        return
+
+    task_text = " ".join(task_words)
+
+    task_path = add_task(task_text, follow_up=follow_up, due_date=due_date)
+    log.info(
+        "task_added", path=str(task_path), task=task_text, follow_up=follow_up, due_date=due_date
+    )
+    await message.reply_text("✓ Task added")
+
+
+async def handle_task_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /task_list command - list open tasks with #to/do or #to/follow-up tags.
+
+    Optional filter:
+        --YYYY-MM-DD or --today: Show only tasks due on or before this date
+    """
+    message = update.message
+    if not message:
+        return
+
+    from src.services.task_manager import format_task_list, parse_date_arg, search_tasks
+
+    # Parse optional date filter
+    due_filter = None
+    for arg in context.args or []:
+        if parsed_date := parse_date_arg(arg):
+            due_filter = parsed_date
+            break
+
+    tasks = search_tasks(due_before=due_filter)
+
+    if not tasks:
+        if due_filter:
+            await message.reply_text(f"No tasks due by {due_filter}")
+        else:
+            await message.reply_text("No open tasks found")
+        return
+
+    # Store task list for /done command
+    context.user_data["last_task_list"] = tasks
+
+    formatted = format_task_list(tasks)
+    await message.reply_text(formatted)
+
+
+async def handle_done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /done N command - complete task N from last /task_list."""
+    message = update.message
+    if not message:
+        return
+
+    args = context.args or []
+    if not args:
+        await message.reply_text("Usage: /done 3")
+        return
+
+    try:
+        task_num = int(args[0])
+    except ValueError:
+        await message.reply_text("Usage: /done 3 (number required)")
+        return
+
+    last_tasks = context.user_data.get("last_task_list", [])
+    if not last_tasks:
+        await message.reply_text("Run /task_list first")
+        return
+
+    if task_num < 1 or task_num > len(last_tasks):
+        await message.reply_text(f"Invalid number. Range: 1-{len(last_tasks)}")
+        return
+
+    from src.services.task_manager import complete_task
+
+    location = last_tasks[task_num - 1]
+    success = complete_task(location)
+
+    if success:
+        # Clear the list to prevent stale completions
+        context.user_data["last_task_list"] = None
+
+        # Extract task description for confirmation (strip checkbox and tag)
+        task_desc = re.sub(r"^- \[ \] #to/(do|follow-up)\s*", "", location.task_text)
+        log.info("task_completed", file=str(location.file_path), line=location.line_number)
+        await message.reply_text(f"✓ Done: {task_desc}")
+    else:
+        await message.reply_text("Task changed or missing. Run /task_list again")

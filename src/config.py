@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     daily_notes_folder: str = "calendar/days"
     daily_note_format: str = "%Y-%m-%d"
 
+    # Task management
+    task_inbox_file: str = "+/task-inbox.md"
+    task_tag: str = "#to/do"
+    task_tag_followup: str = "#to/follow-up"
+    task_list_limit: int = 10
+
     @property
     def inbox_path(self) -> Path:
         return self.vault_path / self.inbox_folder
@@ -42,6 +48,10 @@ class Settings(BaseSettings):
     @property
     def daily_notes_path(self) -> Path:
         return self.vault_path / self.daily_notes_folder
+
+    @property
+    def task_inbox_path(self) -> Path:
+        return self.vault_path / self.task_inbox_file
 
 
 settings = Settings()
