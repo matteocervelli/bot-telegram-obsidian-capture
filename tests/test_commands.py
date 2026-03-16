@@ -148,3 +148,34 @@ async def test_handle_daily_explicit_off():
     await handle_daily(update, context)
 
     assert context.user_data["daily_mode"] is False
+
+
+async def test_undo_removes_last_section_from_daily_note(temp_vault):
+    """Test /undo removes only the last ### HH:MM section from a daily note."""
+    from src.handlers.commands import handle_undo
+
+    daily_note = temp_vault / "calendar" / "days" / "2026-03-16.md"
+    daily_note.parent.mkdir(parents=True, exist_ok=True)
+    daily_note.write_text("### 09:15\n\nFirst capture\n\n### 14:30\n\nSecond capture\n")
+
+    update = MagicMock()
+    update.message = MagicMock()
+    update.message.reply_text = AsyncMock()
+
+    context = MagicMock()
+    context.user_data = {
+        "last_capture": {
+            "note_path": daily_note,
+            "attachments": [],
+            "is_daily": True,
+            "section_time": "14:30",
+        }
+    }
+
+    await handle_undo(update, context)
+
+    remaining = daily_note.read_text()
+    assert "14:30" not in remaining
+    assert "First capture" in remaining
+    reply = update.message.reply_text.call_args[0][0]
+    assert "section 14:30" in reply

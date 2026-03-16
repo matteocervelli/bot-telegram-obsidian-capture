@@ -16,9 +16,9 @@ def _remove_last_daily_section(note_path, section_time: str) -> bool:
 
     content = note_path.read_text(encoding="utf-8")
 
-    # Find ALL sections matching ## HH:MM pattern and remove only the LAST one
-    # Section starts with ## HH:MM and ends at next ## or end of file
-    pattern = rf"\n## {re.escape(section_time)}\n.*?(?=\n## |\Z)"
+    # Find ALL sections matching ### HH:MM pattern and remove only the LAST one
+    # Section starts with ### HH:MM and ends at next ### or end of file
+    pattern = rf"\n### {re.escape(section_time)}\n.*?(?=\n### |\Z)"
     matches = list(re.finditer(pattern, content, flags=re.DOTALL))
 
     if not matches:
