@@ -33,7 +33,7 @@ def append_to_daily(
 
     # Build section header
     section_time = now.strftime("%H:%M")
-    time_header = f"## {section_time}"
+    time_header = f"### {section_time}"
 
     # Build section content
     section_content = content

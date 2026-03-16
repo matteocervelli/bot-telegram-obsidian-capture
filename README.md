@@ -1,6 +1,7 @@
 # Telegram → Obsidian Capture Bot
 
 [![GitHub release](https://img.shields.io/github/v/release/matteocervelli/bot-telegram-obsidian-capture)](https://github.com/matteocervelli/bot-telegram-obsidian-capture/releases)
+[![CI](https://github.com/matteocervelli/bot-telegram-obsidian-capture/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/matteocervelli/bot-telegram-obsidian-capture/actions/workflows/docker-publish.yml)
 [![Docker Image](https://img.shields.io/badge/docker-ghcr.io-blue?logo=docker)](https://github.com/matteocervelli/bot-telegram-obsidian-capture/pkgs/container/telegram-obsidian-capture)
 [![License](https://img.shields.io/badge/license-Polyform%20NC-green)](LICENSE)
 [![Buy Me a Coffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-orange?logo=buy-me-a-coffee)](https://adli.men/coffee)
