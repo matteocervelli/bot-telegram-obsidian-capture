@@ -548,6 +548,7 @@ async def test_handle_done_task_changed():
 
 async def test_handle_undo_no_message():
     from src.handlers.commands import handle_undo
+
     update = MagicMock()
     update.message = None
     await handle_undo(update, MagicMock())  # should not raise
@@ -555,6 +556,7 @@ async def test_handle_undo_no_message():
 
 async def test_handle_daily_no_message():
     from src.handlers.commands import handle_daily
+
     update = MagicMock()
     update.message = None
     await handle_daily(update, MagicMock())
@@ -562,6 +564,7 @@ async def test_handle_daily_no_message():
 
 async def test_handle_task_no_message():
     from src.handlers.commands import handle_task
+
     update = MagicMock()
     update.message = None
     await handle_task(update, MagicMock())
@@ -569,6 +572,7 @@ async def test_handle_task_no_message():
 
 async def test_handle_task_list_no_message():
     from src.handlers.commands import handle_task_list
+
     update = MagicMock()
     update.message = None
     await handle_task_list(update, MagicMock())
@@ -576,6 +580,7 @@ async def test_handle_task_list_no_message():
 
 async def test_handle_done_no_message():
     from src.handlers.commands import handle_done
+
     update = MagicMock()
     update.message = None
     await handle_done(update, MagicMock())

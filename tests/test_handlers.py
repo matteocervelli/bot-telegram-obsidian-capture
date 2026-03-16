@@ -330,6 +330,7 @@ async def test_handle_video_note(mock_transcribe, mock_extract, mock_save, mock_
 
 async def test_handle_voice_no_message():
     from src.handlers.voice import handle_voice
+
     update = MagicMock()
     update.message = None
     await handle_voice(update, MagicMock())
@@ -337,6 +338,7 @@ async def test_handle_voice_no_message():
 
 async def test_handle_photo_no_message():
     from src.handlers.photo import handle_photo
+
     update = MagicMock()
     update.message = None
     await handle_photo(update, MagicMock())
@@ -344,6 +346,7 @@ async def test_handle_photo_no_message():
 
 async def test_handle_document_no_message():
     from src.handlers.document import handle_document
+
     update = MagicMock()
     update.message = None
     await handle_document(update, MagicMock())
@@ -351,6 +354,7 @@ async def test_handle_document_no_message():
 
 async def test_handle_video_no_message():
     from src.handlers.video import handle_video
+
     update = MagicMock()
     update.message = None
     await handle_video(update, MagicMock())
@@ -358,6 +362,7 @@ async def test_handle_video_no_message():
 
 async def test_handle_video_note_no_message():
     from src.handlers.video import handle_video_note
+
     update = MagicMock()
     update.message = None
     await handle_video_note(update, MagicMock())
