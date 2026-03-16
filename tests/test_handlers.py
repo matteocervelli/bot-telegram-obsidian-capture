@@ -3,7 +3,6 @@
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-
 # ─── helpers ────────────────────────────────────────────────────────────────
 
 
@@ -324,3 +323,159 @@ async def test_handle_video_note(mock_transcribe, mock_extract, mock_save, mock_
     call_content = mock_create.call_args[1]["content"]
     assert "Circle transcript" in call_content
     update.message.reply_text.assert_called_with("✓ Captured (15s)")
+
+
+# ─── early returns (message=None) ────────────────────────────────────────────
+
+
+async def test_handle_voice_no_message():
+    from src.handlers.voice import handle_voice
+    update = MagicMock()
+    update.message = None
+    await handle_voice(update, MagicMock())
+
+
+async def test_handle_photo_no_message():
+    from src.handlers.photo import handle_photo
+    update = MagicMock()
+    update.message = None
+    await handle_photo(update, MagicMock())
+
+
+async def test_handle_document_no_message():
+    from src.handlers.document import handle_document
+    update = MagicMock()
+    update.message = None
+    await handle_document(update, MagicMock())
+
+
+async def test_handle_video_no_message():
+    from src.handlers.video import handle_video
+    update = MagicMock()
+    update.message = None
+    await handle_video(update, MagicMock())
+
+
+async def test_handle_video_note_no_message():
+    from src.handlers.video import handle_video_note
+    update = MagicMock()
+    update.message = None
+    await handle_video_note(update, MagicMock())
+
+
+# ─── daily mode branches ──────────────────────────────────────────────────────
+
+
+@patch("src.handlers.photo.save_attachment", return_value=(FAKE_ATTACH, FAKE_WIKILINK))
+@patch(
+    "src.services.daily_notes.append_to_daily",
+    return_value=(FAKE_NOTE, "14:30"),
+)
+async def test_handle_photo_daily_mode(mock_append, mock_save):
+    """Photo in daily mode → appends to daily note."""
+    from src.handlers.photo import handle_photo
+
+    photo_size = MagicMock()
+    photo_size.file_id = "photo-daily"
+    update = _make_update(photo=[photo_size])
+    ctx = _make_context(daily_mode=True)
+
+    await handle_photo(update, ctx)
+
+    mock_append.assert_called_once()
+    assert ctx.user_data["last_capture"]["is_daily"] is True
+
+
+@patch("src.handlers.document.save_attachment", return_value=(FAKE_ATTACH, FAKE_WIKILINK))
+@patch(
+    "src.services.daily_notes.append_to_daily",
+    return_value=(FAKE_NOTE, "14:30"),
+)
+async def test_handle_document_daily_mode(mock_append, mock_save):
+    """Document in daily mode → appends to daily note."""
+    from src.handlers.document import handle_document
+
+    doc = MagicMock()
+    doc.file_id = "doc-daily"
+    doc.file_name = "file.pdf"
+    update = _make_update(document=doc)
+    ctx = _make_context(daily_mode=True)
+
+    await handle_document(update, ctx)
+
+    mock_append.assert_called_once()
+    assert ctx.user_data["last_capture"]["is_daily"] is True
+
+
+@patch("src.handlers.voice.create_note", return_value=FAKE_NOTE)
+@patch("src.handlers.voice.transcribe_voice", new_callable=AsyncMock, return_value="Speech")
+@patch(
+    "src.services.daily_notes.append_to_daily",
+    return_value=(FAKE_NOTE, "14:30"),
+)
+async def test_handle_voice_daily_mode(mock_append, mock_transcribe, mock_create):
+    """Voice in daily mode → appends transcription to daily note."""
+    from src.handlers.voice import handle_voice
+
+    voice = MagicMock()
+    voice.file_id = "voice-daily"
+    voice.duration = 4
+    update = _make_update(voice=voice)
+    ctx = _make_context(daily_mode=True)
+
+    await handle_voice(update, ctx)
+
+    mock_append.assert_called_once_with(content="Speech")
+    assert ctx.user_data["last_capture"]["is_daily"] is True
+
+
+@patch("src.handlers.video.create_note", return_value=FAKE_NOTE)
+@patch("src.handlers.video.save_attachment", return_value=(FAKE_ATTACH, FAKE_WIKILINK))
+@patch("src.handlers.video.extract_audio_from_video", return_value=b"mp3")
+@patch("src.handlers.video.transcribe_mp3", new_callable=AsyncMock, return_value="Vid speech")
+@patch(
+    "src.services.daily_notes.append_to_daily",
+    return_value=(FAKE_NOTE, "14:30"),
+)
+async def test_handle_video_daily_mode(
+    mock_append, mock_transcribe, mock_extract, mock_save, mock_create
+):
+    """Video in daily mode → appends to daily note."""
+    from src.handlers.video import handle_video
+
+    video = MagicMock()
+    video.file_id = "vid-daily"
+    video.duration = 6
+    update = _make_update(video=video)
+    ctx = _make_context(daily_mode=True)
+
+    await handle_video(update, ctx)
+
+    mock_append.assert_called_once()
+    assert ctx.user_data["last_capture"]["is_daily"] is True
+
+
+# ─── note_writer same-minute collision ───────────────────────────────────────
+
+
+def test_create_note_same_minute_collision(temp_vault):
+    """When expected filename exists, falls back to seconds-precision name."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    from src.services.note_writer import create_note
+
+    with patch("src.services.note_writer.settings") as m:
+        m.timezone = "UTC"
+        m.note_filename_format = "%Y-%m-%d %H%M"
+        m.inbox_path = temp_vault / "+"
+
+        tz = ZoneInfo("UTC")
+        now = datetime.now(tz)
+        collision_name = now.strftime("%Y-%m-%d %H%M") + ".md"
+        (temp_vault / "+" / collision_name).write_text("existing")
+
+        result = create_note("New note")
+
+    assert result.name != collision_name
+    assert result.exists()

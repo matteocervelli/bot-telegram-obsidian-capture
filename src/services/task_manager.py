@@ -143,64 +143,64 @@ def _extract_due_date(task_text: str) -> str | None:
     return match.group(1) if match else None
 
 
-def search_tasks(
-    limit: int | None = None,
-    due_before: str | None = None,
-) -> list[TaskLocation]:
-    """
-    Search entire vault for unchecked tasks with #to/do or #to/follow-up tags.
-
-    Args:
-        limit: Maximum tasks to return (uses settings.task_list_limit if None)
-        due_before: If set, only return tasks due on or before this date (YYYY-MM-DD)
-                   Tasks without a due date are always included
-
-    Returns:
-        List of TaskLocation objects, sorted by file modification time (newest first)
-    """
-    limit = limit or settings.task_list_limit
-    tasks: list[TaskLocation] = []
-
-    # Pattern: line starts with unchecked checkbox and has #to/do or #to/follow-up
-    pattern = re.compile(r"^- \[ \] #to/(do|follow-up)\b.*", re.MULTILINE)
-
-    # Get all .md files, sorted by mtime (newest first)
+def _get_vault_md_files() -> list[Path]:
+    """Return all .md files in vault sorted by mtime descending."""
     try:
-        md_files = sorted(
+        return sorted(
             settings.vault_path.rglob("*.md"),
             key=lambda p: p.stat().st_mtime,
             reverse=True,
         )
     except OSError:
-        return tasks
+        return []
 
-    for file_path in md_files:
-        # Skip hidden directories (.obsidian, .git, etc.)
-        if any(part.startswith(".") for part in file_path.parts):
+
+def _scan_file_for_tasks(
+    file_path: Path,
+    pattern: re.Pattern,
+    due_before: str | None,
+) -> list[TaskLocation]:
+    """Return matching TaskLocation objects from a single file."""
+    # Skip hidden directories (.obsidian, .git, etc.)
+    if any(part.startswith(".") for part in file_path.parts):
+        return []
+    try:
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return []
+
+    results = []
+    for line_num, line in enumerate(lines, start=1):
+        if not pattern.match(line):
             continue
+        # Apply due_before filter: skip tasks with due date after filter date
+        if due_before:
+            task_due = _extract_due_date(line)
+            if task_due and task_due > due_before:
+                continue
+        results.append(TaskLocation(file_path=file_path, line_number=line_num, task_text=line))
+    return results
 
-        try:
-            lines = file_path.read_text(encoding="utf-8").splitlines()
-            for line_num, line in enumerate(lines, start=1):
-                if pattern.match(line):
-                    # Apply due_before filter if set
-                    if due_before:
-                        task_due = _extract_due_date(line)
-                        # Include task if: no due date OR due date <= filter date
-                        if task_due and task_due > due_before:
-                            continue
 
-                    tasks.append(
-                        TaskLocation(
-                            file_path=file_path,
-                            line_number=line_num,
-                            task_text=line,
-                        )
-                    )
-                    if len(tasks) >= limit:
-                        return tasks
-        except (OSError, UnicodeDecodeError):
-            continue
+def search_tasks(
+    limit: int | None = None,
+    due_before: str | None = None,
+) -> list[TaskLocation]:
+    """Search entire vault for unchecked #to/do or #to/follow-up tasks.
+
+    Args:
+        limit: Maximum tasks to return (uses settings.task_list_limit if None)
+        due_before: Only return tasks due on or before this date (YYYY-MM-DD).
+                    Tasks without a due date are always included.
+    """
+    limit = limit or settings.task_list_limit
+    pattern = re.compile(r"^- \[ \] #to/(do|follow-up)\b.*", re.MULTILINE)
+    tasks: list[TaskLocation] = []
+
+    for file_path in _get_vault_md_files():
+        tasks.extend(_scan_file_for_tasks(file_path, pattern, due_before))
+        if len(tasks) >= limit:
+            return tasks[:limit]
 
     return tasks
 

@@ -12,42 +12,34 @@ from src.services.video_processor import extract_audio_from_video
 log = structlog.get_logger()
 
 
-async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle incoming video messages (can have captions)."""
-    message = update.message
-    if not message or not message.video:
-        return
+def _build_video_note_content(caption: str, transcription: str | None) -> str:
+    """Combine caption and transcription into note body."""
+    if not transcription:
+        return caption
+    transcription_block = f"**Transcription:**\n{transcription}"
+    return f"{caption}\n\n{transcription_block}" if caption else transcription_block
 
-    video = message.video
-    caption = message.caption or ""
 
-    log.info("received_video", user_id=message.from_user.id, duration=video.duration)
-
-    # Download video
-    file = await context.bot.get_file(video.file_id)
-    video_data = await file.download_as_bytearray()
-
-    # Save video attachment
-    file_path, wikilink_path = save_attachment(bytes(video_data), "mp4", prefix="vid")
-
-    # Try to extract audio and transcribe (non-fatal on failure)
-    transcription = None
+async def _try_transcribe(message, video_data: bytes, log_key: str) -> str | None:
+    """Extract audio from video bytes and transcribe. Returns None on failure."""
     try:
         await message.reply_text("Processing video...")
-        mp3_data = extract_audio_from_video(bytes(video_data), "mp4")
-        transcription = await transcribe_mp3(mp3_data)
+        mp3_data = extract_audio_from_video(video_data, "mp4")
+        return await transcribe_mp3(mp3_data)
     except Exception as e:
-        log.warning("video_transcription_failed", error=str(e))
+        log.warning(log_key, error=str(e))
+        return None
 
-    # Build note content
-    note_content = caption
-    if transcription:
-        if note_content:
-            note_content = f"{note_content}\n\n**Transcription:**\n{transcription}"
-        else:
-            note_content = f"**Transcription:**\n{transcription}"
 
-    # Check for daily mode
+async def _save_video_capture(
+    message,
+    context: ContextTypes.DEFAULT_TYPE,
+    note_content: str,
+    wikilink_path: str,
+    file_path,
+    duration: int,
+) -> None:
+    """Write note (daily or regular), record undo state, reply to user."""
     is_daily = context.user_data.get("daily_mode", False)
     section_time = None
     if is_daily:
@@ -60,15 +52,34 @@ async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         note_path = create_note(content=note_content, attachment_path=wikilink_path)
     log.info("note_created", path=str(note_path))
 
-    # Track for undo
     context.user_data["last_capture"] = {
         "note_path": note_path,
         "attachments": [file_path],
         "is_daily": is_daily,
         "section_time": section_time,
     }
+    await message.reply_text(f"✓ Captured ({duration}s)")
 
-    await message.reply_text(f"✓ Captured ({video.duration}s)")
+
+async def handle_video(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle incoming video messages (can have captions)."""
+    message = update.message
+    if not message or not message.video:
+        return
+
+    video = message.video
+    caption = message.caption or ""
+    log.info("received_video", user_id=message.from_user.id, duration=video.duration)
+
+    file = await context.bot.get_file(video.file_id)
+    video_data = bytes(await file.download_as_bytearray())
+    file_path, wikilink_path = save_attachment(video_data, "mp4", prefix="vid")
+
+    transcription = await _try_transcribe(message, video_data, "video_transcription_failed")
+    note_content = _build_video_note_content(caption, transcription)
+    await _save_video_capture(
+        message, context, note_content, wikilink_path, file_path, video.duration
+    )
 
 
 async def handle_video_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -78,49 +89,14 @@ async def handle_video_note(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         return
 
     video_note = message.video_note
-
     log.info("received_video_note", user_id=message.from_user.id, duration=video_note.duration)
 
-    # Download video note
     file = await context.bot.get_file(video_note.file_id)
-    video_data = await file.download_as_bytearray()
+    video_data = bytes(await file.download_as_bytearray())
+    file_path, wikilink_path = save_attachment(video_data, "mp4", prefix="vnote")
 
-    # Save video attachment
-    file_path, wikilink_path = save_attachment(bytes(video_data), "mp4", prefix="vnote")
-
-    # Try to extract audio and transcribe (non-fatal on failure)
-    transcription = None
-    try:
-        await message.reply_text("Processing video...")
-        mp3_data = extract_audio_from_video(bytes(video_data), "mp4")
-        transcription = await transcribe_mp3(mp3_data)
-    except Exception as e:
-        log.warning("video_note_transcription_failed", error=str(e))
-
-    # Build note content
-    note_content = ""
-    if transcription:
-        note_content = f"**Transcription:**\n{transcription}"
-
-    # Check for daily mode
-    is_daily = context.user_data.get("daily_mode", False)
-    section_time = None
-    if is_daily:
-        from src.services.daily_notes import append_to_daily
-
-        note_path, section_time = append_to_daily(
-            content=note_content, attachment_path=wikilink_path
-        )
-    else:
-        note_path = create_note(content=note_content, attachment_path=wikilink_path)
-    log.info("note_created", path=str(note_path))
-
-    # Track for undo
-    context.user_data["last_capture"] = {
-        "note_path": note_path,
-        "attachments": [file_path],
-        "is_daily": is_daily,
-        "section_time": section_time,
-    }
-
-    await message.reply_text(f"✓ Captured ({video_note.duration}s)")
+    transcription = await _try_transcribe(message, video_data, "video_note_transcription_failed")
+    note_content = _build_video_note_content("", transcription)
+    await _save_video_capture(
+        message, context, note_content, wikilink_path, file_path, video_note.duration
+    )

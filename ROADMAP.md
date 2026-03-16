@@ -2,10 +2,10 @@
 
 ## Planned
 
-- Scheduled captures (send a note at a future time)
-- Multi-vault support (route messages to different vaults by tag)
-- Rich text formatting preservation (bold, italic from Telegram)
-- Image OCR fallback (extract text from photos without captions)
+- Scheduled captures (send a note at a future time) #3
+- Multi-vault support (route messages to different vaults by tag) #4
+- Rich text formatting preservation (bold, italic from Telegram) #5
+- Image OCR fallback (extract text from photos without captions) #6
 
 ## In Progress
 

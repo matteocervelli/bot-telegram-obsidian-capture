@@ -340,3 +340,116 @@ def test_search_tasks_due_before_filter(temp_vault):
         assert "- [ ] #to/do Task early 📅 2026-02-01" in task_texts
         # Task due 2026-02-15 is excluded
         assert "- [ ] #to/do Task late 📅 2026-02-15" not in task_texts
+
+
+# ─── edge cases for _normalize_task prefixes ─────────────────────────────────
+
+
+def test_normalize_task_dash_space_prefix():
+    """'- Buy milk' prefix stripped correctly."""
+    from src.services.task_manager import _normalize_task
+
+    with patch("src.services.task_manager.settings") as m:
+        m.task_tag = "#to/do"
+        m.task_tag_followup = "#to/follow-up"
+        result = _normalize_task("- Buy milk")
+    assert result == "- [ ] #to/do Buy milk"
+
+
+def test_normalize_task_dash_only_prefix():
+    """'-Buy milk' (no space) prefix stripped correctly."""
+    from src.services.task_manager import _normalize_task
+
+    with patch("src.services.task_manager.settings") as m:
+        m.task_tag = "#to/do"
+        m.task_tag_followup = "#to/follow-up"
+        result = _normalize_task("-Buy milk")
+    assert result == "- [ ] #to/do Buy milk"
+
+
+# ─── add_task: append to existing file ───────────────────────────────────────
+
+
+def test_add_task_appends_to_existing_file(temp_vault):
+    """add_task appends when file already exists."""
+    from src.services.task_manager import add_task
+
+    inbox = temp_vault / "+/task-inbox.md"
+    inbox.write_text("- [ ] #to/do First task\n")
+
+    with patch("src.services.task_manager.settings") as m:
+        m.task_tag = "#to/do"
+        m.task_tag_followup = "#to/follow-up"
+        m.task_inbox_path = inbox
+        add_task("Second task")
+
+    content = inbox.read_text()
+    assert "First task" in content
+    assert "Second task" in content
+
+
+def test_add_task_adds_newline_before_append(temp_vault):
+    """add_task inserts newline if existing content lacks trailing newline."""
+    from src.services.task_manager import add_task
+
+    inbox = temp_vault / "+/task-inbox.md"
+    inbox.write_text("- [ ] #to/do First task")  # no trailing newline
+
+    with patch("src.services.task_manager.settings") as m:
+        m.task_tag = "#to/do"
+        m.task_tag_followup = "#to/follow-up"
+        m.task_inbox_path = inbox
+        add_task("Second task")
+
+    content = inbox.read_text()
+    assert "First task\n" in content
+    assert "Second task" in content
+
+
+# ─── _get_vault_md_files OSError ────────────────────────────────────────────
+
+
+def test_get_vault_md_files_oserror(tmp_path):
+    """Returns empty list when vault path raises OSError (e.g. is a file)."""
+    from src.services.task_manager import _get_vault_md_files
+
+    fake_file = tmp_path / "not-a-dir.txt"
+    fake_file.write_text("x")
+
+    with patch("src.services.task_manager.settings") as m:
+        m.vault_path = fake_file  # file, not dir → rglob raises NotADirectoryError
+        result = _get_vault_md_files()
+    assert result == []
+
+
+# ─── _scan_file_for_tasks read error ────────────────────────────────────────
+
+
+def test_scan_file_for_tasks_read_error(tmp_path):
+    """Returns empty list when file cannot be read."""
+    import re
+
+    from src.services.task_manager import _scan_file_for_tasks
+
+    pattern = re.compile(r"^- \[ \] #to/(do|follow-up)\b.*")
+    missing = tmp_path / "nonexistent.md"  # doesn't exist → FileNotFoundError
+    result = _scan_file_for_tasks(missing, pattern, None)
+    assert result == []
+
+
+# ─── complete_task: line index out of bounds ─────────────────────────────────
+
+
+def test_complete_task_line_idx_out_of_bounds(tmp_path):
+    """Returns False when line_number exceeds file length."""
+    from src.services.task_manager import TaskLocation, complete_task
+
+    task_file = tmp_path / "tasks.md"
+    task_file.write_text("- [ ] #to/do Only one line\n")
+
+    loc = TaskLocation(
+        file_path=task_file,
+        line_number=99,
+        task_text="- [ ] #to/do Only one line",
+    )
+    assert complete_task(loc) is False
