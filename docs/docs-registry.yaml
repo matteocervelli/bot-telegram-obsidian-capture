@@ -1,0 +1,46 @@
+meta:
+  project: bot-telegram-obsidian-capture
+  mode: internal
+  docs_base: docs/user-guide/
+  last_audit: 2026-03-16
+
+docs:
+  getting-started:
+    file: docs/user-guide/getting-started.md
+    type: getting-started
+    feature: setup
+    last_updated: 2026-03-16
+    status: published
+    linked_version: "0.2.0"
+
+  feature-capture:
+    file: docs/user-guide/feature-capture.md
+    type: feature-guide
+    feature: capture
+    last_updated: 2026-03-16
+    status: published
+    linked_version: "0.2.0"
+
+  feature-tasks:
+    file: docs/user-guide/feature-tasks.md
+    type: feature-guide
+    feature: tasks
+    last_updated: 2026-03-16
+    status: published
+    linked_version: "0.2.0"
+
+  how-to-daily-notes:
+    file: docs/user-guide/how-to-daily-notes.md
+    type: how-to
+    feature: daily-notes
+    last_updated: 2026-03-16
+    status: published
+    linked_version: "0.1.1"
+
+  api-reference:
+    file: docs/user-guide/api-reference.md
+    type: api-reference
+    feature: configuration
+    last_updated: 2026-03-16
+    status: published
+    linked_version: "0.2.0"
